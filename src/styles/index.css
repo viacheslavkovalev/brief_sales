@@ -1,0 +1,65 @@
+@font-face {
+  font-family: "TT Travels Next Trl";
+  src: url("/fonts/TT Travels Next Trial DemiBold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "TT Travels Trl";
+  src: url("/fonts/TT Travels Trial Regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "TT Travels Trl";
+  src: url("/fonts/TT Travels Trial Medium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-bg: #0d1f3c;
+  --color-accent: #e8412a;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a8b4c8;
+  --color-card: #162440;
+  --color-card-border: #1e3050;
+  --color-input-bg: #0f1c35;
+  --color-progress: #ffffff;
+  color: var(--color-text-primary);
+  background: #0a2341;
+  font-family: "TT Travels Trl", Inter, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: #0a2341;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background: #0a2341;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+img {
+  max-width: 100%;
+}
