@@ -1,34 +1,76 @@
 # Brief Sales
 
-## Отправка ответов в Google Sheets
+Интерактивный аудит воронки продаж на React, TypeScript и Vite. Пользователь
+оставляет email, отвечает на 13 вопросов и получает итоговую рекомендацию.
+Прогресс сохраняется в `localStorage`, а email и ответы последовательно
+записываются в Google Sheets.
 
-Статический сайт создаёт строку сразу после ввода email и обновляет её после
-каждого ответа. Поэтому в таблице остаются и незавершённые анкеты. Скрипт
-использует блокировку, идентификатор прохождения и версию прогресса: параллельные
-запросы не перезаписывают чужие строки, а запоздавший запрос не откатывает ответы.
+## Локальный запуск
 
-1. Откройте целевую Google Таблицу и выберите
-   `Расширения -> Apps Script`.
-2. Вставьте содержимое [`google-apps-script/Code.gs`](google-apps-script/Code.gs)
-   в `Code.gs` и сохраните проект.
-3. Нажмите `Deploy -> New deployment -> Web app`.
-4. Выберите `Execute as: Me` и `Who has access: Anyone`.
-5. Скопируйте URL, который заканчивается на `/exec`.
-6. Создайте `.env.local` для локальной разработки:
+Требуется Node.js 20 или новее.
 
-   ```env
-   VITE_GOOGLE_SCRIPT_URL=https://script.google.com/macros/s/DEPLOYMENT_ID/exec
-   ```
+```bash
+npm install
+cp .env.example .env
+npm run dev
+```
 
-7. Для `npm run deploy` создайте `.env.production` с тем же значением.
+В `.env` укажите URL опубликованного Google Apps Script:
 
-Первая строка листа `gid=0` должна содержать `email`, затем `Вопрос 1` ...
-`Вопрос 13`. Скрипт добавит колонки `Статус`, `Прогресс`, `Баллы`, `Результат`,
-`Создано`, `Обновлено` и две скрытые технические колонки.
+```env
+VITE_GOOGLE_SCRIPT_URL=https://script.google.com/macros/s/DEPLOYMENT_ID/exec
+```
 
-После изменения Apps Script создавайте новую версию deployment. URL можно
-оставить прежним, если редактировать существующий deployment.
+Основные команды:
 
-Фронтенд подтверждает каждое сохранение по `submissionId` и номеру версии.
-Apps Script сериализует конкурентные записи через `ScriptLock`; все обновления
-одного прохождения записываются в одну строку.
+```bash
+npm run dev      # локальный сервер разработки
+npm run build    # TypeScript-проверка и production-сборка в dist/
+npm run preview  # просмотр production-сборки
+npm run deploy   # сборка и публикация в ветку gh-pages
+```
+
+## Структура проекта
+
+- `src/data/quiz.ts` — вопросы, ответы и баллы.
+- `src/data/results.ts` — итоговые заключения.
+- `src/screens/` — экраны аудита.
+- `src/utils/submission.ts` — отправка и подтверждение записи.
+- `public/fonts/` и `public/images/` — используемые статические ресурсы.
+- `google-apps-script/Code.gs` — backend для Google Sheets.
+
+## Google Sheets
+
+1. Откройте целевую таблицу и выберите `Расширения -> Apps Script`.
+2. Перенесите содержимое `google-apps-script/Code.gs` в `Code.gs`.
+3. Проверьте `SPREADSHEET_ID` и `SHEET_GID` в начале файла.
+4. Выберите `Deploy -> New deployment -> Web app`.
+5. Установите `Execute as: Me` и `Who has access: Anyone`.
+6. Добавьте полученный URL `/exec` в `.env`.
+
+Строка создаётся сразу после ввода email и обновляется после каждого ответа.
+`ScriptLock`, `submission_id` и номер ревизии защищают параллельные прохождения
+от перезаписи. Скрипт сам создаёт заголовки и скрывает технические колонки.
+
+После изменения скрипта опубликуйте новую версию существующего deployment.
+Для полного удаления тестовых данных удаляйте строки целиком, начиная со второй:
+очистка только видимых ячеек оставляет скрытые идентификаторы.
+
+## GitHub Pages
+
+В `vite.config.ts` значение `base` должно совпадать с именем репозитория:
+
+```ts
+base: "/brief_sales/"
+```
+
+Для production создайте локальный `.env.production` с
+`VITE_GOOGLE_SCRIPT_URL`, затем выполните:
+
+```bash
+npm run deploy
+```
+
+Исходный код хранится в `main`, а ветка `gh-pages` содержит только
+сгенерированную сборку. Не редактируйте `gh-pages` вручную. Файлы `.env`,
+`node_modules/` и `dist/` не коммитятся.
