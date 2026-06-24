@@ -1,43 +1,32 @@
+import { useEffect } from "react";
 import { Button } from "../components/Button";
 import { ImportantBlock } from "../components/ImportantBlock";
 import { ScreenShell } from "../components/ScreenShell";
-import type { Result, SubmissionStatus } from "../types";
+import type { Result } from "../types";
 import { publicAsset } from "../utils/assets";
 
 type ResultScreenProps = {
   result: Result;
   score: number;
   maxScore: number;
-  submissionStatus: SubmissionStatus;
-  onRetrySubmission: () => void;
 };
 
 export function ResultScreen({
   result,
   score,
   maxScore,
-  submissionStatus,
-  onRetrySubmission,
 }: ResultScreenProps) {
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, []);
+
   return (
     <ScreenShell>
       <section className="flex flex-1 flex-col">
-        <div className="mt-12 border-y border-white py-5 md:mt-[92px]">
+        <div className="mt-6 border-y border-white py-5 md:mt-8">
           <p className="font-travels text-[20px] leading-[1.2] text-white/75">
             Ваш результат: {score} из {maxScore}
           </p>
-          <div className="mt-2 min-h-5 font-travels text-sm text-white/75" aria-live="polite">
-            {submissionStatus === "pending" ? <p>Сохраняем ответы...</p> : null}
-            {submissionStatus === "sent" ? <p>Ответы сохранены.</p> : null}
-            {submissionStatus === "failed" ? (
-              <p>
-                Не удалось сохранить ответы.{" "}
-                <button className="underline underline-offset-4" type="button" onClick={onRetrySubmission}>
-                  Повторить
-                </button>
-              </p>
-            ) : null}
-          </div>
           <h1 className="mt-4 font-travelsNext text-[32px] font-bold uppercase leading-none md:text-[44px]">
             {result.title}
           </h1>
@@ -53,10 +42,10 @@ export function ResultScreen({
           </p>
         </div>
 
-        <div className="mt-8 grid gap-6 rounded-[14px] bg-white px-5 py-6 md:grid-cols-[1fr_112px] md:px-8 md:py-8">
+        <div className="mt-8 grid gap-6 rounded-[14px] bg-white px-5 py-6 md:grid-cols-[1fr_88px] md:px-8 md:py-8">
           <ImportantBlock text={result.important} />
           <img
-            className="mx-auto size-[96px] rounded-full object-cover md:size-[112px]"
+            className="mx-auto size-[72px] rounded-full object-cover md:size-[88px]"
             src={publicAsset("images/eugeniya_photo.png")}
             alt=""
             loading="lazy"

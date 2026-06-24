@@ -20,15 +20,20 @@ export function QuestionScreen({ question, index, selectedOptionId, onAnswer }: 
 
   useEffect(() => {
     setDraftOptionId(selectedOptionId ?? "");
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [question.id, selectedOptionId]);
 
   return (
     <ScreenShell>
       <section className="flex flex-1 flex-col">
-        <PageTitle className="mt-12 md:mt-[56px]" />
+        <PageTitle className="mt-6 md:mt-8" />
 
         <div className="mt-10 md:mt-12">
-          <div className="rounded-[14px] bg-white px-5 py-6 text-figmaBg md:px-12 md:py-10">
+          <div
+            className={`rounded-[14px] bg-white px-5 py-6 text-figmaBg md:px-12 md:py-10 ${
+              index === 0 ? "min-h-[520px] md:min-h-[420px]" : ""
+            }`}
+          >
             <ProgressBar value={progress} />
             <p className="mt-6 font-travels text-[18px] leading-[1.2] text-figmaBg/65">
               Вопрос {index + 1}/{totalQuestions}

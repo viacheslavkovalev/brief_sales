@@ -1,7 +1,6 @@
 import { Button } from "../components/Button";
 import { PageTitle } from "../components/PageTitle";
 import { ScreenShell } from "../components/ScreenShell";
-import { publicAsset } from "../utils/assets";
 
 type IntroScreenProps = {
   onStart: () => void;
@@ -11,16 +10,9 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
   return (
     <ScreenShell className="items-center text-center">
       <section className="flex flex-1 flex-col items-center">
-        <PageTitle className="mt-12 md:mt-[56px]" />
+        <PageTitle className="mt-6 md:mt-8" />
 
-        <img
-          className="mt-8 w-full max-w-[640px] rounded-[35px] object-contain shadow-soft md:mt-10"
-          src={publicAsset("images/first_frame.png")}
-          alt=""
-          loading="eager"
-        />
-
-        <div className="mt-8 w-full max-w-[640px] space-y-4 text-left font-travels text-[18px] leading-[1.2] text-white md:mt-10">
+        <div className="mt-8 w-full max-w-[640px] space-y-4 text-left font-travels text-[18px] leading-[1.2] text-white">
           <p>
             Пока идёт встреча, предлагаем разобрать, как на самом деле устроены ваши продажи.
           </p>
@@ -29,7 +21,7 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
             работает агентский канал и контроль отдела. Отвечаете честно — мы считаем балл и показываем, где
             главный резерв роста.
           </p>
-          <p className="font-bold">Что вы получите на выходе:</p>
+          <p className="!mt-8 font-bold md:!mt-10">Что вы получите на выходе:</p>
           <ul className="space-y-3">
             <li>→ Балл по вашей системе продаж и место на шкале — от отдела, который работает на интуиции, до зрелой системы.</li>
             <li>→ Точку, где сейчас главный резерв роста: в количестве лидов, в воронке, в базе или у агентов. Чаще всего она не там, где кажется.</li>

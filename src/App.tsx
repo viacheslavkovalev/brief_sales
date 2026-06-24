@@ -80,8 +80,6 @@ export function App() {
         result={results[resultId]}
         score={state.score}
         maxScore={maxScore}
-        submissionStatus={state.submissionStatus}
-        onRetrySubmission={actions.retrySubmission}
       />
     );
   }
