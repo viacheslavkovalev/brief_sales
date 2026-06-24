@@ -34,7 +34,7 @@ export function EmailScreen({ initialEmail, onSubmit }: EmailScreenProps) {
 
         <div className="mt-[96px] w-full max-w-[640px] text-left md:mt-[160px]">
           <label className="font-travels text-[20px] leading-[1.2] text-white" htmlFor="email">
-            Перед прохождением укажите ваш email:
+            Укажите вашу почту
           </label>
           <input
             className="mt-4 h-[52px] w-full rounded-lg border border-white bg-white px-5 font-travels text-base text-figmaBg outline-none transition placeholder:text-[#4A5C78] focus:border-white focus:ring-2 focus:ring-white/40"

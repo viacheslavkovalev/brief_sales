@@ -37,6 +37,17 @@ export function QuestionScreen({ question, index, selectedOptionId, onAnswer }: 
               {question.title}
             </h2>
 
+            {question.items ? (
+              <ul className="mt-5 grid gap-2 font-travels text-base leading-[1.25] text-figmaBg/80">
+                {question.items.map((item) => (
+                  <li className="flex gap-2" key={item}>
+                    <span aria-hidden="true">•</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+
             <div className="mt-8 grid gap-3">
               {question.options.map((option) => (
                 <RadioOption

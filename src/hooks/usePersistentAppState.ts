@@ -1,14 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { questions } from "../data/quiz";
-import type { AppState, ResultId, Screen } from "../types";
+import type { AppState, ResultId, Screen, SubmissionStatus } from "../types";
 import { computeResult } from "../utils/results";
 
 const storageKeys = {
+  version: "bs_version",
   email: "bs_email",
   answers: "bs_answers",
   score: "bs_score",
   result: "bs_result",
+  submissionId: "bs_submission_id",
+  submissionStatus: "bs_submission_status",
 } as const;
+
+const storageVersion = "2";
 
 const initialState: AppState = {
   screen: "intro",
@@ -16,10 +21,24 @@ const initialState: AppState = {
   answers: {},
   score: 0,
   result: null,
+  submissionId: "",
+  submissionStatus: "idle",
 };
 
 function getStoredResult(value: string | null): ResultId | null {
   return value === "R1" || value === "R2" || value === "R3" ? value : null;
+}
+
+function getStoredSubmissionStatus(value: string | null): SubmissionStatus {
+  return value === "pending" || value === "sent" || value === "failed" ? value : "idle";
+}
+
+function createSubmissionId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
 function getNextScreen(email: string, answers: Record<string, string>, result: ResultId | null): Screen {
@@ -41,11 +60,22 @@ function readStoredState(): AppState {
   }
 
   try {
+    if (window.localStorage.getItem(storageKeys.version) !== storageVersion) {
+      Object.values(storageKeys).forEach((key) => window.localStorage.removeItem(key));
+      window.localStorage.setItem(storageKeys.version, storageVersion);
+      return initialState;
+    }
+
     const email = window.localStorage.getItem(storageKeys.email) ?? "";
     const answers = JSON.parse(window.localStorage.getItem(storageKeys.answers) ?? "{}") as Record<string, string>;
     const storedScore = Number(window.localStorage.getItem(storageKeys.score) ?? "0");
     const result = getStoredResult(window.localStorage.getItem(storageKeys.result));
+    const submissionId = window.localStorage.getItem(storageKeys.submissionId) ?? "";
+    const storedSubmissionStatus = getStoredSubmissionStatus(
+      window.localStorage.getItem(storageKeys.submissionStatus),
+    );
     const score = Number.isFinite(storedScore) ? storedScore : 0;
+    const submissionStatus = result && storedSubmissionStatus === "idle" ? "pending" : storedSubmissionStatus;
 
     return {
       screen: getNextScreen(email, answers, result),
@@ -53,6 +83,8 @@ function readStoredState(): AppState {
       answers,
       score,
       result,
+      submissionId: result && !submissionId ? createSubmissionId() : submissionId,
+      submissionStatus,
     };
   } catch {
     return initialState;
@@ -63,9 +95,12 @@ export function usePersistentAppState() {
   const [state, setState] = useState<AppState>(() => readStoredState());
 
   useEffect(() => {
+    window.localStorage.setItem(storageKeys.version, storageVersion);
     window.localStorage.setItem(storageKeys.email, state.email);
     window.localStorage.setItem(storageKeys.answers, JSON.stringify(state.answers));
     window.localStorage.setItem(storageKeys.score, String(state.score));
+    window.localStorage.setItem(storageKeys.submissionId, state.submissionId);
+    window.localStorage.setItem(storageKeys.submissionStatus, state.submissionStatus);
 
     if (state.result) {
       window.localStorage.setItem(storageKeys.result, state.result);
@@ -80,7 +115,13 @@ export function usePersistentAppState() {
         setState((current) => ({ ...current, screen: "email" }));
       },
       submitEmail(email: string) {
-        setState((current) => ({ ...current, email, screen: "q1" }));
+        setState((current) => ({
+          ...current,
+          email,
+          screen: "q1",
+          submissionId: createSubmissionId(),
+          submissionStatus: "pending",
+        }));
       },
       answer(questionId: string, optionId: string) {
         setState((current) => {
@@ -96,8 +137,22 @@ export function usePersistentAppState() {
             return { ...current, answers, score, screen: nextQuestion.id };
           }
 
-          return { ...current, answers, score, result: computeResult(score), screen: "result" };
+          return {
+            ...current,
+            answers,
+            score,
+            result: computeResult(score),
+            screen: "result",
+            submissionId: current.submissionId || createSubmissionId(),
+            submissionStatus: "pending",
+          };
         });
+      },
+      setSubmissionStatus(submissionStatus: SubmissionStatus) {
+        setState((current) => ({ ...current, submissionStatus }));
+      },
+      retrySubmission() {
+        setState((current) => ({ ...current, submissionStatus: "pending" }));
       },
       reset() {
         setState(initialState);

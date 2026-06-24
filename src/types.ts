@@ -1,6 +1,10 @@
-export type Screen = "intro" | "email" | "q1" | "q2" | "q3" | "q4" | "q5" | "result";
+export type QuestionId = `q${number}`;
+
+export type Screen = "intro" | "email" | QuestionId | "result";
 
 export type ResultId = "R1" | "R2" | "R3";
+
+export type SubmissionStatus = "idle" | "pending" | "sent" | "failed";
 
 export type Option = {
   id: string;
@@ -9,8 +13,9 @@ export type Option = {
 };
 
 export type Question = {
-  id: "q1" | "q2" | "q3" | "q4" | "q5";
+  id: QuestionId;
   title: string;
+  items?: string[];
   options: Option[];
 };
 
@@ -30,4 +35,6 @@ export type AppState = {
   answers: Record<string, string>;
   score: number;
   result: ResultId | null;
+  submissionId: string;
+  submissionStatus: SubmissionStatus;
 };
