@@ -71,7 +71,6 @@ export async function submitBrief(state: AppState) {
       await fetch(endpoint, {
         method: "POST",
         mode: "no-cors",
-        redirect: "manual",
         headers: { "Content-Type": "text/plain;charset=UTF-8" },
         body: payload,
         keepalive: true,
