@@ -5,6 +5,8 @@ import { computeResult } from "../utils/results";
 
 const storageKeys = {
   version: "bs_version",
+  company: "bs_company",
+  phone: "bs_phone",
   email: "bs_email",
   answers: "bs_answers",
   score: "bs_score",
@@ -13,10 +15,12 @@ const storageKeys = {
   submissionStatus: "bs_submission_status",
 } as const;
 
-const storageVersion = "2";
+const storageVersion = "3";
 
 const initialState: AppState = {
   screen: "intro",
+  company: "",
+  phone: "",
   email: "",
   answers: {},
   score: 0,
@@ -67,6 +71,8 @@ function readStoredState(): AppState {
     }
 
     const email = window.localStorage.getItem(storageKeys.email) ?? "";
+    const company = window.localStorage.getItem(storageKeys.company) ?? "";
+    const phone = window.localStorage.getItem(storageKeys.phone) ?? "";
     const answers = JSON.parse(window.localStorage.getItem(storageKeys.answers) ?? "{}") as Record<string, string>;
     const storedScore = Number(window.localStorage.getItem(storageKeys.score) ?? "0");
     const result = getStoredResult(window.localStorage.getItem(storageKeys.result));
@@ -79,6 +85,8 @@ function readStoredState(): AppState {
 
     return {
       screen: getNextScreen(email, answers, result),
+      company,
+      phone,
       email,
       answers,
       score,
@@ -96,6 +104,8 @@ export function usePersistentAppState() {
 
   useEffect(() => {
     window.localStorage.setItem(storageKeys.version, storageVersion);
+    window.localStorage.setItem(storageKeys.company, state.company);
+    window.localStorage.setItem(storageKeys.phone, state.phone);
     window.localStorage.setItem(storageKeys.email, state.email);
     window.localStorage.setItem(storageKeys.answers, JSON.stringify(state.answers));
     window.localStorage.setItem(storageKeys.score, String(state.score));
@@ -114,10 +124,12 @@ export function usePersistentAppState() {
       start() {
         setState((current) => ({ ...current, screen: "email" }));
       },
-      submitEmail(email: string) {
+      submitEmail(contact: { company: string; phone: string; email: string }) {
         setState((current) => ({
           ...current,
-          email,
+          company: contact.company,
+          phone: contact.phone,
+          email: contact.email,
           screen: "q1",
           submissionId: createSubmissionId(),
           submissionStatus: "pending",

@@ -31,6 +31,8 @@ export type Result = {
 
 export type AppState = {
   screen: Screen;
+  company: string;
+  phone: string;
   email: string;
   answers: Record<string, string>;
   score: number;

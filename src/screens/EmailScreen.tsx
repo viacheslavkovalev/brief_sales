@@ -4,26 +4,38 @@ import { PageTitle } from "../components/PageTitle";
 import { ScreenShell } from "../components/ScreenShell";
 
 type EmailScreenProps = {
+  initialCompany: string;
+  initialPhone: string;
   initialEmail: string;
-  onSubmit: (email: string) => void;
+  onSubmit: (contact: { company: string; phone: string; email: string }) => void;
 };
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-export function EmailScreen({ initialEmail, onSubmit }: EmailScreenProps) {
+export function EmailScreen({ initialCompany, initialPhone, initialEmail, onSubmit }: EmailScreenProps) {
+  const [company, setCompany] = useState(initialCompany);
+  const [phone, setPhone] = useState(initialPhone);
   const [email, setEmail] = useState(initialEmail);
   const [touched, setTouched] = useState(false);
-  const valid = useMemo(() => isValidEmail(email), [email]);
-  const showError = touched && email.length > 0 && !valid;
+  const emailValid = useMemo(() => isValidEmail(email), [email]);
+  const valid = useMemo(
+    () => company.trim().length > 1 && phone.trim().length > 4 && emailValid,
+    [company, emailValid, phone],
+  );
+  const showError = touched && email.length > 0 && !emailValid;
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setTouched(true);
 
     if (valid) {
-      onSubmit(email.trim());
+      onSubmit({
+        company: company.trim(),
+        phone: phone.trim(),
+        email: email.trim(),
+      });
     }
   }
 
@@ -34,7 +46,36 @@ export function EmailScreen({ initialEmail, onSubmit }: EmailScreenProps) {
 
         <div className="mt-10 flex min-h-[520px] w-full max-w-[640px] items-center md:mt-12 md:min-h-[420px]">
           <div className="w-full text-left">
-            <label className="font-travels text-[20px] leading-[1.2] text-white" htmlFor="email">
+            <label className="font-travels text-[20px] leading-[1.2] text-white" htmlFor="company">
+              Компания
+            </label>
+            <input
+              className="mt-4 h-[52px] w-full rounded-lg border border-white bg-white px-5 font-travels text-base text-figmaBg outline-none transition placeholder:text-[#4A5C78] focus:border-white focus:ring-2 focus:ring-white/40"
+              id="company"
+              type="text"
+              placeholder="Название компании"
+              required
+              value={company}
+              onBlur={() => setTouched(true)}
+              onChange={(event) => setCompany(event.target.value)}
+            />
+
+            <label className="mt-6 block font-travels text-[20px] leading-[1.2] text-white" htmlFor="phone">
+              Телефон
+            </label>
+            <input
+              className="mt-4 h-[52px] w-full rounded-lg border border-white bg-white px-5 font-travels text-base text-figmaBg outline-none transition placeholder:text-[#4A5C78] focus:border-white focus:ring-2 focus:ring-white/40"
+              id="phone"
+              type="tel"
+              inputMode="tel"
+              placeholder="+7 999 123-45-67"
+              required
+              value={phone}
+              onBlur={() => setTouched(true)}
+              onChange={(event) => setPhone(event.target.value)}
+            />
+
+            <label className="mt-6 block font-travels text-[20px] leading-[1.2] text-white" htmlFor="email">
               Укажите вашу почту
             </label>
             <input

@@ -17,7 +17,7 @@ export function App() {
   const latestRevision = useRef(-1);
 
   useEffect(() => {
-    if (!state.email || !state.submissionId) {
+    if (!state.company || !state.phone || !state.email || !state.submissionId) {
       return;
     }
 
@@ -58,7 +58,9 @@ export function App() {
   }, [
     actions,
     state.answers,
+    state.company,
     state.email,
+    state.phone,
     state.result,
     state.score,
     state.submissionId,
@@ -70,7 +72,14 @@ export function App() {
   }
 
   if (state.screen === "email") {
-    return <EmailScreen initialEmail={state.email} onSubmit={actions.submitEmail} />;
+    return (
+      <EmailScreen
+        initialCompany={state.company}
+        initialPhone={state.phone}
+        initialEmail={state.email}
+        onSubmit={actions.submitEmail}
+      />
+    );
   }
 
   if (state.screen === "result") {

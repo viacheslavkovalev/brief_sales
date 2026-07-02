@@ -8,6 +8,8 @@ type SubmissionPayload = {
   submissionId: string;
   revision: number;
   status: "started" | "in_progress" | "completed";
+  company: string;
+  phone: string;
   email: string;
   score: number;
   result: string;
@@ -27,6 +29,8 @@ function buildPayload(state: AppState): SubmissionPayload {
     submissionId: state.submissionId,
     revision,
     status: state.result ? "completed" : revision > 0 ? "in_progress" : "started",
+    company: state.company,
+    phone: state.phone,
     email: state.email,
     score: state.score,
     result: state.result ?? "",
