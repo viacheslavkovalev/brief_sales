@@ -3,8 +3,6 @@ import type { AppState } from "../types";
 
 const endpoint = import.meta.env.VITE_GOOGLE_SCRIPT_URL?.trim();
 const retryDelays = [0, 1_000, 3_000];
-const confirmationTimeoutMs = 30_000;
-const staleCallbackTtlMs = 60_000;
 
 type SubmissionPayload = {
   submissionId: string;
@@ -55,59 +53,6 @@ function wait(delay: number) {
   return new Promise((resolve) => window.setTimeout(resolve, delay));
 }
 
-function confirmSubmission(url: string, submissionId: string, revision: number) {
-  return new Promise<boolean>((resolve, reject) => {
-    const callbackName = `__briefStatus_${submissionId.replaceAll("-", "_")}_${Date.now()}`;
-    const callbacks = window as unknown as Record<
-      string,
-      (payload: { saved?: boolean; revision?: number }) => void
-    >;
-    const script = document.createElement("script");
-    let settled = false;
-    const timeout = window.setTimeout(() => {
-      cleanup({ keepCallback: true });
-      reject(new Error("Submission confirmation timed out"));
-    }, confirmationTimeoutMs);
-
-    function cleanup({ keepCallback = false } = {}) {
-      if (settled) {
-        return;
-      }
-
-      settled = true;
-      window.clearTimeout(timeout);
-      script.remove();
-
-      if (keepCallback) {
-        callbacks[callbackName] = () => undefined;
-        window.setTimeout(() => {
-          delete callbacks[callbackName];
-        }, staleCallbackTtlMs);
-        return;
-      }
-
-      delete callbacks[callbackName];
-    }
-
-    callbacks[callbackName] = (response) => {
-      cleanup();
-      resolve(response.saved === true && (response.revision ?? -1) >= revision);
-    };
-
-    script.onerror = () => {
-      cleanup();
-      reject(new Error("Submission confirmation failed"));
-    };
-
-    const statusUrl = new URL(url);
-    statusUrl.searchParams.set("submissionId", submissionId);
-    statusUrl.searchParams.set("callback", callbackName);
-    statusUrl.searchParams.set("_", String(Date.now()));
-    script.src = statusUrl.toString();
-    document.head.append(script);
-  });
-}
-
 export async function submitBrief(state: AppState) {
   if (!endpoint) {
     throw new Error("VITE_GOOGLE_SCRIPT_URL is not configured");
@@ -126,16 +71,13 @@ export async function submitBrief(state: AppState) {
       await fetch(endpoint, {
         method: "POST",
         mode: "no-cors",
+        redirect: "manual",
         headers: { "Content-Type": "text/plain;charset=UTF-8" },
         body: payload,
         keepalive: true,
       });
 
-      if (await confirmSubmission(endpoint, state.submissionId, submission.revision)) {
-        return;
-      }
-
-      lastError = new Error("Submission was not saved");
+      return;
     } catch (error) {
       lastError = error;
     }
