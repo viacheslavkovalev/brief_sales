@@ -3,6 +3,8 @@ import type { AppState } from "../types";
 
 const endpoint = import.meta.env.VITE_GOOGLE_SCRIPT_URL?.trim();
 const retryDelays = [0, 1_000, 3_000];
+const confirmationTimeoutMs = 30_000;
+const staleCallbackTtlMs = 60_000;
 
 type SubmissionPayload = {
   submissionId: string;
@@ -61,14 +63,29 @@ function confirmSubmission(url: string, submissionId: string, revision: number) 
       (payload: { saved?: boolean; revision?: number }) => void
     >;
     const script = document.createElement("script");
+    let settled = false;
     const timeout = window.setTimeout(() => {
-      cleanup();
+      cleanup({ keepCallback: true });
       reject(new Error("Submission confirmation timed out"));
-    }, 10_000);
+    }, confirmationTimeoutMs);
 
-    function cleanup() {
+    function cleanup({ keepCallback = false } = {}) {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
       window.clearTimeout(timeout);
       script.remove();
+
+      if (keepCallback) {
+        callbacks[callbackName] = () => undefined;
+        window.setTimeout(() => {
+          delete callbacks[callbackName];
+        }, staleCallbackTtlMs);
+        return;
+      }
+
       delete callbacks[callbackName];
     }
 
