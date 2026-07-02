@@ -55,7 +55,7 @@ function doGet(event) {
 
 function doPost(event) {
   try {
-    const payload = JSON.parse(event.postData.contents);
+    const payload = JSON.parse(event.parameter.payload || event.postData.contents);
     validatePayload(payload);
 
     const lock = LockService.getScriptLock();

@@ -3,6 +3,7 @@ import type { AppState } from "../types";
 
 const endpoint = import.meta.env.VITE_GOOGLE_SCRIPT_URL?.trim();
 const retryDelays = [0, 1_000, 3_000];
+const formSubmitWaitMs = 1_500;
 
 type SubmissionPayload = {
   submissionId: string;
@@ -53,6 +54,33 @@ function wait(delay: number) {
   return new Promise((resolve) => window.setTimeout(resolve, delay));
 }
 
+async function postViaHiddenForm(payload: string) {
+  const frameName = `brief_submit_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  const iframe = document.createElement("iframe");
+  const form = document.createElement("form");
+  const input = document.createElement("input");
+
+  iframe.name = frameName;
+  iframe.hidden = true;
+
+  form.action = endpoint ?? "";
+  form.method = "POST";
+  form.target = frameName;
+  form.hidden = true;
+
+  input.type = "hidden";
+  input.name = "payload";
+  input.value = payload;
+
+  form.append(input);
+  document.body.append(iframe, form);
+  form.submit();
+
+  await wait(formSubmitWaitMs);
+  form.remove();
+  iframe.remove();
+}
+
 export async function submitBrief(state: AppState) {
   if (!endpoint) {
     throw new Error("VITE_GOOGLE_SCRIPT_URL is not configured");
@@ -68,14 +96,7 @@ export async function submitBrief(state: AppState) {
     }
 
     try {
-      await fetch(endpoint, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain;charset=UTF-8" },
-        body: payload,
-        keepalive: true,
-      });
-
+      await postViaHiddenForm(payload);
       return;
     } catch (error) {
       lastError = error;
